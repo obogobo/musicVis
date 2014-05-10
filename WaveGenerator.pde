@@ -1,31 +1,37 @@
 
 public class WaveGenerator extends Visulization {
-  private BassDetect bassDetect;
   private ArrayList<Waveform> waves, tombs;
-  private int waveAmplitude, circleRadius, timeToLive, timer;
+  private int waveAmplitude, waveRadius, timeToLive, timer;
+  private int waveLimit, rateLimit, minWaveSpeed, maxWaveSpeed;
               
   public WaveGenerator() {
     super();
-    bassDetect = new BassDetect();
+
+    // bookkeeping
     waves = new ArrayList<Waveform>();
     tombs = new ArrayList<Waveform>();
     
-    // params
+    // global params
+    minWaveSpeed = 2;
+    maxWaveSpeed = 8;
+    waveLimit = 10;
+    rateLimit = 80;  // down time between waves
+    
+    // local params
     waveAmplitude = 30;
-    circleRadius = 50;
-    timeToLive = 33;
+    waveRadius = 50;
+    timeToLive = 45;
   }
   
   @Override
-  public void update() {
+  public void update() {    
     frame.setTitle(floor(frameRate) + " fps // " + waves.size() + " waves");
-    background(0);
     
     // update ui
     for (Waveform wf : waves) {
       wf.render();
-      // garbage collect the off-screen waves
-      if (wf.radiate() <= 0) {
+      // radiate the waves, garbage collect those that have expired or, are (almost) off-screen
+      if (wf.radiate(dubMode ? map(bassDetect.shortLevel(), 0, 150, minWaveSpeed, maxWaveSpeed) : maxWaveSpeed) <= 0 || wf.radius >= width/2) {
          tombs.add(wf);
       }
     }
@@ -33,17 +39,15 @@ public class WaveGenerator extends Visulization {
     tombs.clear();
     
     // every so often... add a new wave
-    if ((millis() - timer >= 60) && (waves.size() < 15) && bassDetect.isKick()) {
+    if ((millis() - timer >= rateLimit) && (waves.size() < waveLimit) && (debugMode || bassDetect.isKick())) {
       // average a few endpoints to close the waveform more naturally
       float[] samples = player.mix.toArray();
-      for (int i=1; i<samples.length/256; i++) {
-        // rethink this, learn some more math
-        samples[i] = ((samples[i] + samples[samples.length-1-i]) / 2) ;
-        samples[samples.length-1-i] = ((samples[i] + samples[samples.length-1-i]) / 2);
-      }
-      
-      // spawn
-      waves.add(new Waveform(samples, waveAmplitude, circleRadius, timeToLive));
+        for (int i=0; i<samples.length/256; i++) {
+          samples[i] = ((samples[i] + samples[samples.length-1-i]) / 2);
+          samples[samples.length-1-i] = ((samples[i] + samples[samples.length-1-i]) / 2);
+        }      
+      // spawn it!
+      waves.add(new Waveform(samples, waveAmplitude, waveRadius, timeToLive));
       timer = millis();
     }
   }

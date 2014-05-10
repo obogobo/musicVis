@@ -1,11 +1,10 @@
 
-public class BassDetect {  
+public class BassDetect extends Thread { 
   private FFT fftBass;
+  private int bassIndex;
+  private float noiseFactor;
   private float[] longWindow, shortWindow;
   public float longThreshold, shortThreshold, noiseThreshold;
-  
-  private float kickAmount;
-  private int bassIndex;
   
   public BassDetect() {
     // frequency analysis
@@ -15,37 +14,53 @@ public class BassDetect {
     shortWindow = new float[6];      // 1/10th second = 6 sample moving window
 
     // params
-    bassIndex = 1;      // "bucket" considerd to resemble bass
-    kickAmount = 0.1;   // pseudo "just noticeable difference"
+    bassIndex = 1;      // spectra "bucket" considerd to resemble bass
+    noiseFactor = 0.1;  // noisiness factor, "just noticeable difference" constant
   }
   
-  // compute a moving average of the amplitude measured at the bassIndex, 
+  // continually compute a moving average of the measured bass amplitude, 
   // this can be thought of as the threshold required to register a "kick".
+  public void run() {
+    while (player.isPlaying()) {      
+      // perform a forward FFT on the samples in active's mix buffer
+      fftBass.forward(player.mix);
+      
+      // calculate the bass thresholds
+      longThreshold = getAvg(longWindow);
+      shortThreshold = getAvg(shortWindow);
+      noiseThreshold = ((noiseFactor * longThreshold > noiseFactor * 100) ? (noiseFactor * longThreshold) : (noiseFactor * 100));
+      
+      // update the bass thresholds
+      longWindow[frameCount % longWindow.length] = fftBass.getAvg(bassIndex);
+      shortWindow[frameCount % shortWindow.length] = fftBass.getAvg(bassIndex);
+      
+      try {
+        sleep(20);
+      } catch (Exception e) {
+        e.printStackTrace(); 
+      }
+    }
+  }
+  
+  // core beat detection logic
   public boolean isKick() {
     boolean isKick = false;
-    
-    // perform a forward FFT on the samples in active's mix buffer
-    fftBass.forward(player.mix);
-    
-    // calculate the bass thresholds
-    longThreshold = getAvg(longWindow);
-    shortThreshold = getAvg(shortWindow);
-    noiseThreshold = ((kickAmount * longThreshold > kickAmount * 100) ? (kickAmount * longThreshold) : (kickAmount * 100));
-    
-    // core beat detection
     if ((shortThreshold >= longThreshold) && (shortThreshold > noiseThreshold)) {
       isKick = true;
     }
-    
-    // update the bass thresholds
-    longWindow[frameCount % longWindow.length] = fftBass.getAvg(bassIndex);
-    shortWindow[frameCount % shortWindow.length] = fftBass.getAvg(bassIndex);
-    
     return isKick;
   }
   
+  public float shortLevel() {
+    return shortThreshold;
+  }
+  
+  public float longLevel() {
+    return longThreshold;
+  }
+  
   // draw bass thresholds as horizontal lines
-  // ^^ very useful when tweaking the beat detection, because MATH!
+  // very useful when tweaking the beat detection!!
   public void debugDraw() {
     strokeWeight(5);
     
@@ -62,7 +77,7 @@ public class BassDetect {
     line(0, (height - noiseThreshold), width, (height - noiseThreshold));
   }
   
-  // helper for normalizing the frequency windows
+  // helper method for normalizing the frequency windows
   private float getAvg(float[] vals) {
     int n;
     float sum=0;
