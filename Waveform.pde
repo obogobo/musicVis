@@ -28,8 +28,8 @@ public class Waveform {
     endShape();
   }
  
-  // expand the waveform
-  // increases radius, fades color value, decrements time-to-live.
+  // expand the waveform, return its remaining lifespan
+  // increases radius, decrements time-to-live.
   public float radiate(float step) {
     radius += step;
     return --TTL;
