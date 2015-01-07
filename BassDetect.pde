@@ -45,7 +45,7 @@ public class BassDetect extends Thread {
   // core beat detection logic
   public boolean isKick() {
     boolean isKick = false;
-    if ((shortThreshold >= longThreshold) && (shortThreshold > noiseThreshold)) {
+    if ((shortThreshold >= (longThreshold - noiseThreshold)) && (shortThreshold > noiseThreshold)) {
       isKick = true;
     }
     return isKick;

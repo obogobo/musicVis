@@ -3,6 +3,7 @@ public class WaveGenerator extends Visulization {
   private ArrayList<Waveform> waves, tombs;
   private int waveAmplitude, waveRadius, timeToLive, timer;
   private int waveLimit, rateLimit, minWaveSpeed, maxWaveSpeed;
+  private float expansionFactor;
               
   public WaveGenerator() {
     super();
@@ -26,10 +27,10 @@ public class WaveGenerator extends Visulization {
   @Override
   public void update() {    
     frame.setTitle(floor(frameRate) + " fps // " + waves.size() + " waves");
-    float expansionFactor = (dubMode ? map(bassDetect.shortLevel(), 0, 150, minWaveSpeed, maxWaveSpeed) : maxWaveSpeed);
     
     // update ui
     for (Waveform wf : waves) {
+      expansionFactor = (dubMode ? map(bassDetect.shortLevel(), 0, 150, minWaveSpeed, maxWaveSpeed) : maxWaveSpeed);
       wf.render();
       // radiate the waves, garbage collect those that have expired or, are (almost) off-screen
       if (wf.radiate(expansionFactor) <= 0 || wf.radius >= width/2) {
