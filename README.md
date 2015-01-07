@@ -8,3 +8,5 @@ A Music Visualizer Written in Processing. Initially my contribution to our group
 Add songs to "data" [mp3, wav], use numeric keys to switch vis screens.
 <br/>Space skips a song, left goes back. E,S,A,C,D,X toggle different modes, explore.
 
+[tapestry](https://dl.dropboxusercontent.com/u/4434736/tapestry.PNG)[waves](https://dl.dropboxusercontent.com/u/4434736/wave.PNG)
+[missionControl](https://dl.dropboxusercontent.com/u/4434736/missionControl.PNG)[bassBlocks](https://dl.dropboxusercontent.com/u/4434736/block.PNG)
