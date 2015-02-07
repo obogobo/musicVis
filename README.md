@@ -1,4 +1,4 @@
-mvis
+musicVis
 ====
 TL;DR - [https://www.youtube.com/watch?v=LHzcissxrVU, https://www.youtube.com/watch?v=QU3SnX9ZzOY]
 
